@@ -31,9 +31,9 @@ class YagoutPayConfig {
       'neTdYIKd87JEj4C6ZoYjaeBiCoeOr40ZKBEI8EU/8lo=';
 
   // API sample - UAT (from documentation)
-  static const String apiTestMerchantId = '202505090001';
+  static const String apiTestMerchantId = '202508080001';
   static const String apiTestKey =
-      '6eUzH0ZdoVVBMTHrgdA0sqOFyKm54zojV4/faiSirkE=';
+      'IG3CNW5uNrUO2mU2htUOWb9rgXCF7XMAXmL63d7wNZo=';
 
   // API pg_details sample from the guide - UAT (from documentation)
   static const String apiPgId = '67ee846571e740418d688c3f';
