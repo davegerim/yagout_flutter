@@ -26,9 +26,9 @@ class YagoutPayConfig {
   static const String aggregatorId = 'yagout';
 
   // Hosted sample - UAT (from documentation)
-  static const String hostedTestMerchantId = '202504290002';
+  static const String hostedTestMerchantId = '202508080001';
   static const String hostedTestKey =
-      'neTdYIKd87JEj4C6ZoYjaeBiCoeOr40ZKBEI8EU/8lo=';
+      'IG3CNW5uNrUO2mU2htUOWb9rgXCF7XMAXmL63d7wNZo=';
 
   // API sample - UAT (from documentation)
   static const String apiTestMerchantId = '202508080001';
