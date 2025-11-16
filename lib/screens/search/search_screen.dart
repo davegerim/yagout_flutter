@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../../providers/product_provider.dart';
-import '../../utils/app_theme.dart';
 import '../../widgets/product_card.dart';
 
 class SearchScreen extends StatefulWidget {

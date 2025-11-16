@@ -8,7 +8,7 @@ void main() async {
   print('');
 
   // Test with OR-DOIT-XXXX format directly
-  final orderNumber = 'OR-DOIT-1234';
+  const orderNumber = 'OR-DOIT-1234';
 
   print('Testing with: $orderNumber');
   print('Passing directly to API (no regeneration)');
@@ -21,7 +21,7 @@ void main() async {
       successUrl: 'https://example.com/success',
       failureUrl: 'https://example.com/failure',
       email: 'test@example.com',
-      mobile: '965680964',
+      mobile: '985392862',
       customerName: 'Test User',
     );
 

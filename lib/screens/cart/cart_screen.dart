@@ -83,15 +83,15 @@ class CartScreen extends StatelessWidget {
                                     child: CachedNetworkImage(
                                       imageUrl: item.product.images.first,
                                       fit: BoxFit.cover,
-                                      placeholder:
-                                          (context, url) => const Center(
-                                            child: CircularProgressIndicator(),
-                                          ),
-                                      errorWidget:
-                                          (context, url, error) => const Icon(
-                                            Icons.error,
-                                            color: Colors.grey,
-                                          ),
+                                      placeholder: (context, url) =>
+                                          const Center(
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                      errorWidget: (context, url, error) =>
+                                          const Icon(
+                                        Icons.error,
+                                        color: Colors.grey,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -126,7 +126,7 @@ class CartScreen extends StatelessWidget {
                                             MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text(
-                                            '\$${item.product.price.toStringAsFixed(0)}',
+                                            '${item.product.price.toStringAsFixed(0)} Birr',
                                             style: const TextStyle(
                                               fontSize: 16,
                                               fontWeight: FontWeight.bold,
@@ -152,9 +152,9 @@ class CartScreen extends StatelessWidget {
                                               Container(
                                                 padding:
                                                     const EdgeInsets.symmetric(
-                                                      horizontal: 12,
-                                                      vertical: 4,
-                                                    ),
+                                                  horizontal: 12,
+                                                  vertical: 4,
+                                                ),
                                                 decoration: BoxDecoration(
                                                   border: Border.all(
                                                     color: Colors.grey[300]!,
@@ -223,7 +223,7 @@ class CartScreen extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            '\$${cartProvider.totalAmount.toStringAsFixed(2)}',
+                            '${cartProvider.totalAmount.toStringAsFixed(2)} Birr',
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,

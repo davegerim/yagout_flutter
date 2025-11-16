@@ -43,12 +43,10 @@ class ProductCard extends StatelessWidget {
                     child: CachedNetworkImage(
                       imageUrl: product.images.first,
                       fit: BoxFit.cover,
-                      placeholder:
-                          (context, url) =>
-                              const Center(child: CircularProgressIndicator()),
-                      errorWidget:
-                          (context, url, error) =>
-                              const Icon(Icons.error, color: Colors.grey),
+                      placeholder: (context, url) =>
+                          const Center(child: CircularProgressIndicator()),
+                      errorWidget: (context, url, error) =>
+                          const Icon(Icons.error, color: Colors.grey),
                     ),
                   ),
                 ),
@@ -154,9 +152,8 @@ class ProductCard extends StatelessWidget {
                       children: [
                         RatingBarIndicator(
                           rating: product.rating,
-                          itemBuilder:
-                              (context, index) =>
-                                  const Icon(Icons.star, color: Colors.amber),
+                          itemBuilder: (context, index) =>
+                              const Icon(Icons.star, color: Colors.amber),
                           itemCount: 5,
                           itemSize: 14,
                         ),
@@ -176,7 +173,7 @@ class ProductCard extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          '\$${product.price.toStringAsFixed(0)}',
+                          '${product.price.toStringAsFixed(0)} Birr',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -186,7 +183,7 @@ class ProductCard extends StatelessWidget {
                         if (product.discountPercentage > 0) ...[
                           const SizedBox(width: 8),
                           Text(
-                            '\$${product.originalPrice.toStringAsFixed(0)}',
+                            '${product.originalPrice.toStringAsFixed(0)} Birr',
                             style: const TextStyle(
                               fontSize: 12,
                               color: AppTheme.textSecondary,

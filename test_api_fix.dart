@@ -1,7 +1,4 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'lib/services/yagoutpay_service.dart';
-import 'lib/config/yagoutpay_config.dart';
 
 void main() async {
   print('=== Testing YagoutPay API Fix ===\n');

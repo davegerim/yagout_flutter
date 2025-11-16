@@ -17,6 +17,9 @@ import 'screens/cart/cart_screen.dart';
 import 'screens/checkout/checkout_screen.dart';
 import 'screens/orders/order_history_screen.dart';
 import 'screens/profile/profile_screen.dart';
+import 'screens/payment_links/payment_links_home_screen.dart';
+import 'screens/payment_links/payment_link_screen.dart';
+import 'screens/payment_links/static_link_screen.dart';
 import 'utils/app_theme.dart';
 
 void main() {
@@ -55,6 +58,9 @@ class ShoeStoreApp extends StatelessWidget {
           '/checkout': (context) => const CheckoutScreen(),
           '/orders': (context) => const OrderHistoryScreen(),
           '/profile': (context) => const ProfileScreen(),
+          '/payment-links': (context) => const PaymentLinksHomeScreen(),
+          '/payment-link': (context) => const PaymentLinkScreen(),
+          '/static-link': (context) => const StaticLinkScreen(),
         },
       ),
     );

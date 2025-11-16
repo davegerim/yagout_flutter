@@ -120,7 +120,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Total: \$${order.totalAmount.toStringAsFixed(2)}',
+                            'Total: ${order.totalAmount.toStringAsFixed(2)} Birr',
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -252,7 +252,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                     ),
                                   ),
                                   Text(
-                                    '\$${item.totalPrice.toStringAsFixed(2)}',
+                                    '${item.totalPrice.toStringAsFixed(2)} Birr',
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: AppTheme.primaryColor,

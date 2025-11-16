@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'lib/services/yagoutpay_service.dart';
 
 void main() async {

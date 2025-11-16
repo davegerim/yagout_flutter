@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:convert';
 import 'dart:math';
 import '../../providers/cart_provider.dart';
 import '../../providers/order_provider.dart';
 import '../../utils/app_theme.dart';
 import '../../services/yagoutpay_service.dart';
-import '../../screens/checkout/yagoutpay_webview_screen.dart';
+import '../../screens/payment/yagoutpay_success_screen.dart';
+import '../../screens/payment/yagoutpay_failure_screen.dart';
 import '../../config/yagoutpay_config.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -43,7 +43,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   String _selectedCountry = 'ETH';
   bool _sameAsShipping = true;
 
-  String _selectedPaymentMethod = 'YagoutPay (Hosted)';
+  String _selectedPaymentMethod = 'YagoutPay (API)';
   bool _isProcessing = false;
 
   @override
@@ -163,7 +163,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                     ),
                     Text(
-                      '\$${item.totalPrice.toStringAsFixed(2)}',
+                      '${item.totalPrice.toStringAsFixed(2)} Birr',
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -172,7 +172,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ],
                 ),
               );
-            }).toList(),
+            }),
             const Divider(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -182,7 +182,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  '\$${cartProvider.totalAmount.toStringAsFixed(2)}',
+                  '${cartProvider.totalAmount.toStringAsFixed(2)} Birr',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -723,7 +723,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               _buildSummaryRow('Wallet Type', YagoutPayConfig.walletType),
             ],
             _buildSummaryRow('Total Amount',
-                '\$${cartProvider.totalAmount.toStringAsFixed(2)}'),
+                '${cartProvider.totalAmount.toStringAsFixed(2)} Birr'),
           ],
         ),
       ),
@@ -770,17 +770,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
             const SizedBox(height: 16),
             RadioListTile<String>(
-              title: const Text('YagoutPay (Hosted)'),
-              value: 'YagoutPay (Hosted)',
-              groupValue: _selectedPaymentMethod,
-              onChanged: (value) {
-                setState(() {
-                  _selectedPaymentMethod = value!;
-                });
-              },
-            ),
-            RadioListTile<String>(
-              title: const Text('YagoutPay (API)'),
+              title: const Text('YagoutPay (Direct API)'),
               value: 'YagoutPay (API)',
               groupValue: _selectedPaymentMethod,
               onChanged: (value) {
@@ -789,123 +779,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 });
               },
             ),
-            // Debug button for API integration
-            if (_selectedPaymentMethod == 'YagoutPay (API)') ...[
-              const SizedBox(height: 16),
-              Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => _debugApiRequest(),
-                          child: const Text('Debug API Request'),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => _testEncryption(),
-                          child: const Text('Test Simple Encryption'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => _testExactStructure(),
-                          child: const Text('Test Exact Structure'),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => _testAuthMethods(),
-                          child: const Text('Test Auth Methods'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => _testWorkingFormat(),
-                          child: const Text('Test Working Format'),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => _testKnownEncryption(),
-                          child: const Text('Test Known Encryption'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () => _testFreshPayment(),
-                      icon: const Icon(Icons.payment, color: Colors.white),
-                      label: const Text('💳 TEST FRESH PAYMENT 💳'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.purple,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () => _testQuickSuccess(),
-                      icon: const Icon(Icons.flash_on, color: Colors.white),
-                      label: const Text('⚡ QUICK SUCCESS TEST ⚡'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () => _testCompleteResolution(),
-                      icon: const Icon(Icons.check_circle, color: Colors.white),
-                      label: const Text('🎉 FINAL RESOLUTION TEST 🎉'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () => _testEmergencyPayment(),
-                      icon: const Icon(Icons.warning, color: Colors.white),
-                      label: const Text('🚨 EMERGENCY MINIMAL TEST 🚨'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
           ],
         ),
       ),
@@ -953,14 +826,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         bool paymentOk = false;
         String? yagoutPayOrderId; // Store YagoutPay order ID
 
-        if (_selectedPaymentMethod == 'YagoutPay (Hosted)') {
-          final result = await _startYagoutHostedPayment(
-            amount: cartProvider.totalAmount,
-            cartProvider: cartProvider,
-          );
-          paymentOk = result['success'] ?? false;
-          yagoutPayOrderId = result['orderId'];
-        } else if (_selectedPaymentMethod == 'YagoutPay (API)') {
+        // Only support YagoutPay Direct API integration
+        if (_selectedPaymentMethod == 'YagoutPay' ||
+            _selectedPaymentMethod == 'YagoutPay (API)') {
           final result = await _startYagoutApiPayment(
             amount: cartProvider.totalAmount,
             cartProvider: cartProvider,
@@ -1032,91 +900,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  Future<Map<String, dynamic>> _startYagoutHostedPayment(
-      {required double amount, required CartProvider cartProvider}) async {
-    // YagoutPay clarification: Pass OR-DOIT-XXXX format directly to API
-    // Generate OR-DOIT-XXXX format order ID for hosted payment
-    final random = Random().nextInt(9999).toString().padLeft(4, '0');
-    final orderNo = 'OR-DOIT-$random';
-    print('Generated OR-DOIT-XXXX order ID for hosted payment: $orderNo');
-    print('Passing directly to hosted payment as per YagoutPay clarification');
-
-    // IMPORTANT: Replace with registered merchant URLs
-    const successUrl = 'https://example.com/success';
-    const failureUrl = 'https://example.com/failure';
-
-    final html = YagoutPayService.buildHostedAutoSubmitHtml(
-      orderNo: orderNo,
-      amount: amount.toStringAsFixed(2),
-      successUrl: successUrl,
-      failureUrl: failureUrl,
-      currency: YagoutPayConfig.defaultCurrency,
-      country: _selectedCountry,
-      channel: YagoutPayConfig.defaultChannel,
-      customerName: _nameController.text,
-      email: _emailController.text,
-      mobile: _phoneController.text,
-      shippingAddress: _addressController.text,
-      shippingCity: _cityController.text,
-      shippingState: _stateController.text,
-      shippingZip: _zipController.text,
-      billingAddress: _sameAsShipping
-          ? _addressController.text
-          : _billAddressController.text,
-      billingCity:
-          _sameAsShipping ? _cityController.text : _billCityController.text,
-      billingState:
-          _sameAsShipping ? _stateController.text : _billStateController.text,
-      billingZip:
-          _sameAsShipping ? _zipController.text : _billZipController.text,
-      udf1: _udf1Controller.text,
-      udf2: _udf2Controller.text,
-      udf3: _udf3Controller.text,
-      udf4: _udf4Controller.text,
-      udf5: _udf5Controller.text,
-      itemCount: cartProvider.items.length.toString(),
-      itemValue: cartProvider.items
-          .map((item) => item.totalPrice.toStringAsFixed(2))
-          .join(','),
-      itemCategory: cartProvider.items.map((item) => 'Shoes').join(','),
-    );
-
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => YagoutPayWebViewScreen(
-          htmlContent: html,
-          successUrl: successUrl,
-          failureUrl: failureUrl,
-        ),
-      ),
-    );
-
-    // WebView screen pops with {'status': 'success'|'failure'}
-    if (result is Map && result['status'] == 'success') {
-      return {
-        'success': true,
-        'orderId': orderNo, // Return the OR-DOIT-XXXX order ID
-      };
-    }
-    return {
-      'success': false,
-      'orderId': orderNo,
-    };
-  }
-
   Future<Map<String, dynamic>> _startYagoutApiPayment(
       {required double amount, required CartProvider cartProvider}) async {
     // YagoutPay clarification: Pass OR-DOIT-XXXX format directly to API
-    // Generate OR-DOIT-XXXX format order ID
-    final random = Random().nextInt(9999).toString().padLeft(4, '0');
-    final orderNo = 'OR-DOIT-$random';
+    // Generate OR-DOIT-XXXX format order ID (12 characters: OR-DOIT-1234)
+    final orderNo = YagoutPayService.generateUniqueOrderId('CHECKOUT');
     print('Generated OR-DOIT-XXXX order ID: $orderNo');
+    print('Format: ${orderNo.length} characters (expected: 12)');
     print('Passing directly to API as per YagoutPay clarification');
 
-    // IMPORTANT: Replace with registered merchant URLs
-    const successUrl = 'https://example.com/success';
-    const failureUrl = 'https://example.com/failure';
+    // For Direct API: Use empty URLs (matching working JavaScript implementation)
+    // YagoutPay handles payment status internally without callback URLs for Direct API
+    const successUrl = ''; // Empty string like JavaScript
+    const failureUrl = ''; // Empty string like JavaScript
 
     final resp = await YagoutPayService.payViaApi(
       orderNo: orderNo,
@@ -1125,7 +921,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       failureUrl: failureUrl,
       email: _emailController.text,
       mobile: _phoneController.text,
-      customerName: _nameController.text,
+      customerName: _nameController.text.isEmpty ? 'Customer' : _nameController.text,
       country: _selectedCountry,
       currency: YagoutPayConfig.defaultCurrency,
       channel: YagoutPayConfig.defaultChannel,
@@ -1169,6 +965,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       if (status.contains('success') ||
           status.contains('duplicate') ||
           status.contains('dublicate')) {
+        // Navigate to success page for API payments
+        _navigateToApiSuccessPage(orderNo, resp, dec, amount);
         return {
           'success': true,
           'orderId': orderNo, // Return the OR-DOIT-XXXX order ID
@@ -1182,1011 +980,76 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         status.contains('duplicate') ||
         status.contains('dublicate');
 
-    if (!ok) {
-      // Surface gateway reason to caller for visibility in UI
+    if (ok) {
+      // Navigate to success page for API payments
+      _navigateToApiSuccessPage(orderNo, resp, dec, amount);
+      return {
+        'success': true,
+        'orderId': orderNo, // Return the OR-DOIT-XXXX order ID
+      };
+    } else {
+      // Navigate to failure page for API payments
       final msg = (resp['statusMessage'] ?? 'Unknown error').toString();
+      _navigateToApiFailurePage(orderNo, resp, msg, amount);
       throw 'YagoutPay API: $msg';
     }
-    return {
-      'success': true,
-      'orderId': orderNo, // Return the OR-DOIT-XXXX order ID
-    };
   }
 
-  Future<void> _debugApiRequest() async {
-    // Generate short numeric order ID following YagoutPay documentation format
-    // Documentation examples: "49340" (5 digits) or "00012100" (8 digits)
-    final random = Random().nextInt(99999999).toString().padLeft(8, '0');
-    final orderNo = random;
-    final amount = '100.00'; // Example amount
-    final successUrl = 'https://example.com/success';
-    final failureUrl = 'https://example.com/failure';
-    final email = _emailController.text;
-    final mobile = _phoneController.text;
-
-    try {
-      final resp = await YagoutPayService.payViaApi(
-        orderNo: orderNo,
-        amount: amount,
-        successUrl: successUrl,
-        failureUrl: failureUrl,
-        email: email,
-        mobile: mobile,
-      );
-
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('API Response'),
-              content: SingleChildScrollView(
-                child: Text(jsonEncode(resp)),
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
+  void _navigateToApiSuccessPage(String orderNo, Map<String, dynamic> resp,
+      Map<String, dynamic>? dec, double amount) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => YagoutPaySuccessScreen(
+          orderId: orderNo,
+          transactionId:
+              dec?['transactionId'] ?? dec?['txnId'] ?? resp['transactionId'],
+          amount: amount.toStringAsFixed(2),
+          currency: YagoutPayConfig.defaultCurrency,
+          customerName: _nameController.text,
+          customerEmail: _emailController.text,
+          customerPhone: _phoneController.text,
+          paymentMethod: 'YagoutPay (API)',
+          timestamp: DateTime.now().toIso8601String(),
+          additionalData: {
+            'api_response': resp,
+            'decrypted_response': dec,
+            'status': resp['status'],
+            'status_message': resp['statusMessage'],
           },
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('API Error'),
-              content: Text('Error: $e'),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
-    }
+        ),
+      ),
+    );
   }
 
-  Future<void> _testEncryption() async {
-    try {
-      final result = await YagoutPayService.testEncryption();
-
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Encryption Test Result'),
-              content: SingleChildScrollView(
-                child: Text(jsonEncode(result)),
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
+  void _navigateToApiFailurePage(String orderNo, Map<String, dynamic> resp,
+      String errorMessage, double amount) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => YagoutPayFailureScreen(
+          orderId: orderNo,
+          errorCode: resp['status'] ?? 'API_ERROR',
+          errorMessage: errorMessage,
+          amount: amount.toStringAsFixed(2),
+          currency: YagoutPayConfig.defaultCurrency,
+          customerName: _nameController.text,
+          customerEmail: _emailController.text,
+          customerPhone: _phoneController.text,
+          paymentMethod: 'YagoutPay (API)',
+          timestamp: DateTime.now().toIso8601String(),
+          additionalData: {
+            'api_response': resp,
+            'status': resp['status'],
+            'status_message': resp['statusMessage'],
           },
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Encryption Test Error'),
-              content: Text('Error: $e'),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
+          onRetry: () {
+            // Navigate back to checkout for retry
+            Navigator.pushNamedAndRemoveUntil(
+                context, '/checkout', (route) => false);
           },
-        );
-      }
-    }
-  }
-
-  Future<void> _testApiStructure() async {
-    try {
-      final result = await YagoutPayService.testApiStructure();
-
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('API Structure Test Result'),
-              content: SingleChildScrollView(
-                child: Text(jsonEncode(result)),
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('API Structure Test Error'),
-              content: Text('Error: $e'),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
-    }
-  }
-
-  Future<void> _debugEncryption() async {
-    try {
-      final result = YagoutPayService.debugEncryption();
-
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Encryption Debug Result'),
-              content: SingleChildScrollView(
-                child: Text(jsonEncode(result)),
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Encryption Debug Error'),
-              content: Text('Error: $e'),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
-    }
-  }
-
-  Future<void> _testKnownEncryption() async {
-    try {
-      await YagoutPayService.testKnownEncryption();
-
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Known Encryption Test'),
-              content: const Text('Check console for detailed output'),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Known Encryption Test Error'),
-              content: Text('Error: $e'),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
-    }
-  }
-
-  Future<void> _testExactStructure() async {
-    try {
-      final result = await YagoutPayService.testExactDocumentedStructure();
-
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Exact Structure Test'),
-              content: SingleChildScrollView(
-                child: Text(jsonEncode(result)),
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Exact Structure Test Error'),
-              content: Text('Error: $e'),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
-    }
-  }
-
-  Future<void> _testMinimalRequest() async {
-    try {
-      final result = await YagoutPayService.testMinimalApiRequest();
-
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Minimal API Test'),
-              content: SingleChildScrollView(
-                child: Text(jsonEncode(result)),
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Minimal API Test Error'),
-              content: Text('Error: $e'),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
-    }
-  }
-
-  Future<void> _testFreshPayment() async {
-    try {
-      final result = await YagoutPayService.testFreshPayment();
-
-      if (mounted) {
-        final status = result['status'];
-        final isSuccess =
-            status == 'PAYMENT_SUCCESS' || status == 'PAYMENT_PENDING';
-
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Row(
-                children: [
-                  Icon(
-                    isSuccess
-                        ? Icons.check_circle
-                        : status == 'DUPLICATE_AGAIN'
-                            ? Icons.warning
-                            : Icons.error,
-                    color: isSuccess
-                        ? Colors.green
-                        : status == 'DUPLICATE_AGAIN'
-                            ? Colors.orange
-                            : Colors.red,
-                    size: 28,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    isSuccess
-                        ? '🎉 PAYMENT PROCESSED!'
-                        : status == 'DUPLICATE_AGAIN'
-                            ? '⚠️  Still Duplicate'
-                            : 'Test Results',
-                    style: TextStyle(
-                      color: isSuccess
-                          ? Colors.green
-                          : status == 'DUPLICATE_AGAIN'
-                              ? Colors.orange
-                              : Colors.red,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      result['message'] ?? 'No message',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: isSuccess
-                            ? Colors.green
-                            : status == 'DUPLICATE_AGAIN'
-                                ? Colors.orange
-                                : Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    if (result['order_id'] != null)
-                      Text('Order ID: ${result['order_id']}'),
-                    const SizedBox(height: 10),
-                    if (isSuccess)
-                      const Text(
-                        'Check your phone for SMS confirmation from YagoutPay!',
-                        style: TextStyle(
-                          fontStyle: FontStyle.italic,
-                          color: Colors.blue,
-                        ),
-                      ),
-                    const SizedBox(height: 10),
-                    const Text('Raw Response:'),
-                    Text(
-                      jsonEncode(result['response'] ?? result),
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                if (isSuccess)
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                              '📱 Check your phone for YagoutPay SMS confirmation!'),
-                          backgroundColor: Colors.green,
-                          duration: Duration(seconds: 5),
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text('Check Phone'),
-                  ),
-              ],
-            );
-          },
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Fresh Payment Test Error'),
-              content: Text('Error: $e'),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
-    }
-  }
-
-  Future<void> _testQuickSuccess() async {
-    try {
-      final result = await YagoutPayService.testQuickSuccess();
-
-      if (mounted) {
-        final isSuccess = result['status'] == 'COMPLETE_SUCCESS';
-
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Row(
-                children: [
-                  Icon(
-                    isSuccess ? Icons.celebration : Icons.warning,
-                    color: isSuccess ? Colors.green : Colors.orange,
-                    size: 28,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    isSuccess ? '🎉 SUCCESS CONFIRMED!' : 'Test Results',
-                    style: TextStyle(
-                      color: isSuccess ? Colors.green : Colors.orange,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (isSuccess)
-                      const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '✅ YagoutPay Integration WORKING!\n',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green,
-                            ),
-                          ),
-                          Text('The "Invalid Encryption" error is RESOLVED!\n'),
-                          Text('• API Communication: Working\n'),
-                          Text('• Authentication: Resolved\n'),
-                          Text('• Encryption: Perfect\n'),
-                          Text('• Payment Processing: Ready\n'),
-                          Text(
-                            'Ready for real payments!',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue,
-                            ),
-                          ),
-                        ],
-                      )
-                    else
-                      Text(jsonEncode(result)),
-                  ],
-                ),
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                if (isSuccess)
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      // Show that they can now place real orders
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                              '🎉 YagoutPay is working! You can now place real orders.'),
-                          backgroundColor: Colors.green,
-                          duration: Duration(seconds: 3),
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text('Great!'),
-                  ),
-              ],
-            );
-          },
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Quick Test Error'),
-              content: Text('Error: $e'),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
-    }
-  }
-
-  Future<void> _testCompleteResolution() async {
-    try {
-      final result = await YagoutPayService.testCompleteResolution();
-
-      if (mounted) {
-        // Show success dialog with special styling for complete success
-        final isCompleteSuccess = result['status'] == 'COMPLETE_SUCCESS';
-
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Row(
-                children: [
-                  Icon(
-                    isCompleteSuccess ? Icons.celebration : Icons.info,
-                    color: isCompleteSuccess ? Colors.green : Colors.orange,
-                    size: 28,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    isCompleteSuccess ? '🎉 COMPLETE SUCCESS!' : 'Test Results',
-                    style: TextStyle(
-                      color: isCompleteSuccess ? Colors.green : Colors.orange,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (isCompleteSuccess) ...[
-                      const Text(
-                        '✅ YagoutPay Integration Fully Functional!\n',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green,
-                        ),
-                      ),
-                      const Text('• Encryption: Working perfectly\n'),
-                      const Text('• Authentication: Resolved\n'),
-                      const Text('• API Communication: Functional\n'),
-                      const Text('• Payment Processing: Ready\n'),
-                      const Text(
-                        'You can now process real payments!',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue,
-                        ),
-                      ),
-                    ] else
-                      Text(jsonEncode(result)),
-                  ],
-                ),
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                if (isCompleteSuccess)
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      // Automatically place a test order
-                      _placeOrder(context.read<CartProvider>());
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text('Place Real Order'),
-                  ),
-              ],
-            );
-          },
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Final Test Error'),
-              content: Text('Error: $e'),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
-    }
-  }
-
-  Future<void> _testAuthMethods() async {
-    try {
-      final result = await YagoutPayService.testAuthenticationMethods();
-
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Authentication Methods Test'),
-              content: SingleChildScrollView(
-                child: Text(jsonEncode(result)),
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Authentication Test Error'),
-              content: Text('Error: $e'),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
-    }
-  }
-
-  Future<void> _testWorkingFormat() async {
-    try {
-      final result = await YagoutPayService.testWorkingFormat();
-
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Working Format Test'),
-              content: SingleChildScrollView(
-                child: Text(jsonEncode(result)),
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Working Format Test Error'),
-              content: Text('Error: $e'),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
-    }
-  }
-
-  Future<void> _testEmergencyPayment() async {
-    try {
-      final result = await YagoutPayService.testEmergencyPayment();
-
-      if (mounted) {
-        final status = result['status']?.toString() ?? '';
-        final isSuccess = status.toLowerCase().contains('success') ||
-            status.toLowerCase().contains('pending');
-        final isDuplicate = status.toLowerCase().contains('duplicate');
-
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Row(
-                children: [
-                  Icon(
-                    isSuccess
-                        ? Icons.check_circle
-                        : isDuplicate
-                            ? Icons.warning
-                            : Icons.error,
-                    color: isSuccess
-                        ? Colors.green
-                        : isDuplicate
-                            ? Colors.red
-                            : Colors.orange,
-                    size: 28,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    isSuccess
-                        ? '🎉 EMERGENCY SUCCESS!'
-                        : isDuplicate
-                            ? '🚨 Still Duplicate OrderID'
-                            : 'Emergency Test Results',
-                    style: TextStyle(
-                      color: isSuccess
-                          ? Colors.green
-                          : isDuplicate
-                              ? Colors.red
-                              : Colors.orange,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (isSuccess) ...[
-                      const Text(
-                        'BREAKTHROUGH! The emergency minimal test succeeded!',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        '📱 Check your phone for SMS confirmation from YagoutPay!',
-                        style: TextStyle(
-                          fontStyle: FontStyle.italic,
-                          color: Colors.blue,
-                        ),
-                      ),
-                    ] else if (isDuplicate) ...[
-                      const Text(
-                        'Even the emergency test shows duplicate OrderID.',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.red,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        'This confirms that the UAT environment has persistent data storage.\n\nRecommendation: Contact YagoutPay support to:\n1. Clear UAT test data\n2. Provide fresh test credentials\n3. Reset the UAT environment',
-                        style: TextStyle(
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ] else ...[
-                      Text(
-                        'Status: $status',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 15),
-                    const Text('Raw Response:'),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        jsonEncode(result),
-                        style: const TextStyle(
-                            fontSize: 12, fontFamily: 'monospace'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                if (isSuccess)
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                              '📱 Check your phone for YagoutPay SMS confirmation!'),
-                          backgroundColor: Colors.green,
-                          duration: Duration(seconds: 5),
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text('Check Phone'),
-                  ),
-                if (isDuplicate)
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      // Show recommendation dialog
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Next Steps'),
-                          content: const Text(
-                            'Since all our tests show duplicate OrderID errors, the issue is with the UAT environment data persistence.\n\nWe\'ve confirmed that:\n1. Encryption is working correctly\n2. Authentication is working\n3. Order ID generation is unique\n\nThe UAT environment needs to be reset by YagoutPay support.',
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: const Text('Understood'),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text('Next Steps'),
-                  ),
-              ],
-            );
-          },
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Emergency Test Error'),
-              content: Text('Error: $e'),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
-    }
+        ),
+      ),
+    );
   }
 }

@@ -8,7 +8,7 @@ void main() async {
   print('');
 
   // Test with a different order number
-  final orderNumber = 'OR-DOIT-9999';
+  const orderNumber = 'OR-DOIT-9999';
 
   print('Testing with: $orderNumber');
   print('This should be a fresh number that hasn\'t been used');

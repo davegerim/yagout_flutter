@@ -111,7 +111,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         Row(
                           children: [
                             Text(
-                              '\$${product.price.toStringAsFixed(0)}',
+                              '${product.price.toStringAsFixed(0)} Birr',
                               style: const TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.bold,
@@ -121,7 +121,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             if (product.discountPercentage > 0) ...[
                               const SizedBox(width: 12),
                               Text(
-                                '\$${product.originalPrice.toStringAsFixed(0)}',
+                                '${product.originalPrice.toStringAsFixed(0)} Birr',
                                 style: const TextStyle(
                                   fontSize: 18,
                                   color: AppTheme.textSecondary,

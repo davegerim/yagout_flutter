@@ -31,7 +31,7 @@ class AesUtil {
       // $size = 16;
       // $pad = $size - (strlen($text) % $size);
       // $padtext = $text . str_repeat(chr($pad), $pad);
-      final size = _blockSize;
+      const size = _blockSize;
       final pad = size - (textBytes.length % size);
       
       // Create padded bytes with padding bytes (PKCS7 padding)
@@ -170,7 +170,7 @@ class AesUtil {
   static String padForZeroPadding(String data) {
     // Convert to bytes to get accurate length
     final dataBytes = utf8.encode(data);
-    final size = _blockSize;
+    const size = _blockSize;
     final remainder = dataBytes.length % size;
     
     if (remainder == 0) {

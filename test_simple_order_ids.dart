@@ -21,7 +21,7 @@ void main() {
   for (int i = 0; i < 3; i++) {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final random = Random().nextInt(9999).toString().padLeft(4, '0');
-    final orderNo = '${timestamp}${random}';
+    final orderNo = '$timestamp$random';
 
     print('Manual Order ID $i: $orderNo');
     print('Length: ${orderNo.length} characters');

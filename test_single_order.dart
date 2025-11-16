@@ -6,7 +6,7 @@ void main() async {
   print('');
 
   // Test with the specific order number YagoutPay mentioned
-  final orderNumber = 'OR-DOIT-1234';
+  const orderNumber = 'OR-DOIT-1234';
 
   print('Testing with: $orderNumber');
   print('');
@@ -18,7 +18,7 @@ void main() async {
       successUrl: 'https://example.com/success',
       failureUrl: 'https://example.com/failure',
       email: 'test@example.com',
-      mobile: '965680964',
+      mobile: '985392862',
       customerName: 'Test User',
     );
 
