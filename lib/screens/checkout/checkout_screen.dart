@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math';
+import 'dart:convert';
 import '../../providers/cart_provider.dart';
 import '../../providers/order_provider.dart';
 import '../../utils/app_theme.dart';
@@ -835,59 +836,66 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           );
           paymentOk = result['success'] ?? false;
           yagoutPayOrderId = result['orderId'];
+          
+          // If payment failed, navigation to failure page already happened
+          // Just return early - don't show error banner
+          if (!paymentOk) {
+            setState(() {
+              _isProcessing = false;
+            });
+            return; // Exit early - failure page is already shown
+          }
         }
 
+        // Only proceed with order creation if payment was successful
+        // (Success page navigation already happened in _startYagoutApiPayment)
         if (!paymentOk) {
-          throw 'Payment was not successful';
+          setState(() {
+            _isProcessing = false;
+          });
+          return; // Exit early
         }
 
-        // Use the SAME order ID for both YagoutPay and internal storage
-        // This implements the documentation requirement: "An order details should be created for every payment"
-        final orderId = await context.read<OrderProvider>().placeOrder(
-              cartProvider.items,
-              cartProvider.totalAmount,
-              shippingAddress,
-              _selectedPaymentMethod,
-              yagoutPayOrderId: yagoutPayOrderId, // Pass YagoutPay order ID
-            );
-
-        cartProvider.clearCart();
-
-        if (mounted) {
-          Navigator.pushReplacementNamed(context, '/orders');
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Order placed successfully! Order ID: $orderId'),
-              backgroundColor: AppTheme.successColor,
-              duration: const Duration(seconds: 4),
-            ),
-          );
+        // Payment was successful - success page navigation already happened
+        // Create order in background (for records) but don't navigate again
+        // The success page is already showing
+        try {
+          final orderId = await context.read<OrderProvider>().placeOrder(
+                cartProvider.items,
+                cartProvider.totalAmount,
+                shippingAddress,
+                _selectedPaymentMethod,
+                yagoutPayOrderId: yagoutPayOrderId, // Pass YagoutPay order ID
+              );
+          cartProvider.clearCart();
+          print('✅ Order created in background: $orderId');
+        } catch (e) {
+          // Order creation failed, but payment was successful
+          // Don't show error - success page is already showing
+          print('⚠️ Failed to create order record: $e');
         }
       } catch (e) {
-        if (mounted) {
-          // Check if it's a duplicate order ID error
+        // Only show error if we're still on the checkout page
+        // (Navigation to success/failure pages already happened for payment errors)
+        if (mounted && Navigator.canPop(context)) {
           final errorMsg = e.toString();
-          String displayMsg;
-          Color backgroundColor;
-
-          // Since we now treat duplicate as success, this should rarely happen
-          if (errorMsg.toLowerCase().contains('duplicate') ||
-              errorMsg.toLowerCase().contains('dublicate')) {
-            displayMsg =
-                'Payment processed successfully! (Duplicate OrderID indicates successful API communication)';
-            backgroundColor = Colors.green;
-          } else if (errorMsg.toLowerCase().contains('order id already used')) {
-            displayMsg = 'Payment processed successfully!';
-            backgroundColor = Colors.green;
-          } else {
-            displayMsg = 'Failed to place order: $e';
-            backgroundColor = AppTheme.errorColor;
+          
+          // Check if this is a payment-related error that already navigated
+          if (errorMsg.toLowerCase().contains('yagoutpay api') ||
+              errorMsg.toLowerCase().contains('payment') ||
+              errorMsg.toLowerCase().contains('declined') ||
+              errorMsg.toLowerCase().contains('failed')) {
+            // Payment error - navigation should have already happened
+            // Don't show error banner
+            print('⚠️ Payment error caught, but navigation already happened: $e');
+            return;
           }
-
+          
+          // For other unexpected errors, show error message
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(displayMsg),
-              backgroundColor: backgroundColor,
+              content: Text('An error occurred: $e'),
+              backgroundColor: AppTheme.errorColor,
               duration: const Duration(seconds: 5),
             ),
           );
@@ -914,7 +922,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     const successUrl = ''; // Empty string like JavaScript
     const failureUrl = ''; // Empty string like JavaScript
 
-    final resp = await YagoutPayService.payViaApi(
+    Map<String, dynamic> resp;
+    try {
+      resp = await YagoutPayService.payViaApi(
       orderNo: orderNo,
       amount: amount.toStringAsFixed(2),
       successUrl: successUrl,
@@ -949,39 +959,99 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           .map((item) => item.totalPrice.toStringAsFixed(2))
           .join(','),
       itemCategory: cartProvider.items.map((item) => 'Shoes').join(','),
-    );
+      );
+    } catch (e) {
+      // If service throws an exception, try to extract response from error message
+      // This handles cases where backend returns 201 but old code throws exception
+      final errorStr = e.toString();
+      print('⚠️ Service threw exception: $e');
+      
+      // Try to parse JSON from error message if it contains backend response
+      if (errorStr.contains('{') && errorStr.contains('"data"')) {
+        try {
+          // Extract JSON from error message
+          final jsonStart = errorStr.indexOf('{');
+          final jsonEnd = errorStr.lastIndexOf('}') + 1;
+          if (jsonStart >= 0 && jsonEnd > jsonStart) {
+            final jsonStr = errorStr.substring(jsonStart, jsonEnd);
+            final errorResponse = json.decode(jsonStr) as Map<String, dynamic>;
+            if (errorResponse['data'] != null) {
+              // We have the response data, use it
+              print('✅ Extracted response from error message');
+              resp = {
+                'status': errorResponse['data']['status'] ?? 'Error',
+                'statusMessage': errorResponse['data']['statusMessage'] ?? 'Payment failed',
+                'decrypted': null,
+                'raw': errorResponse['data'],
+              };
+            } else {
+              rethrow;
+            }
+          } else {
+            rethrow;
+          }
+        } catch (parseError) {
+          // Couldn't parse, rethrow original error
+          print('❌ Could not parse error response: $parseError');
+          rethrow;
+        }
+      } else {
+        // No JSON in error, rethrow
+        rethrow;
+      }
+    }
 
     print(
         'YagoutPay API Response: ${resp['status']} - ${resp['statusMessage']}');
 
+    // Get the status from response (this is the YagoutPay payment status)
+    final status = (resp['status'] ?? '').toString().toLowerCase();
+    final statusMessage = (resp['statusMessage'] ?? '').toString();
+
     // Prefer decrypted payload if available
     final dec = resp['decrypted'] as Map<String, dynamic>?;
+    String? decryptedStatus;
     if (dec != null) {
-      final status =
+      decryptedStatus =
           (dec['status'] ?? dec['paymentStatus'] ?? dec['txnStatus'] ?? '')
               .toString()
               .toLowerCase();
-      // Treat success OR duplicate as success (duplicate means API is working)
-      if (status.contains('success') ||
-          status.contains('duplicate') ||
-          status.contains('dublicate')) {
-        // Navigate to success page for API payments
-        _navigateToApiSuccessPage(orderNo, resp, dec, amount);
-        return {
-          'success': true,
-          'orderId': orderNo, // Return the OR-DOIT-XXXX order ID
-        };
-      }
     }
 
-    final status = (resp['status'] ?? '').toString().toLowerCase();
-    // Treat success OR duplicate as success (duplicate means API is working correctly)
-    final ok = status.contains('success') ||
-        status.contains('duplicate') ||
-        status.contains('dublicate');
+    // Determine if payment was successful
+    // Success indicators: "success", "approved", "completed"
+    // Failure indicators: "declined", "failed", "error", "cancelled", "rejected"
+    final isSuccess = (status.contains('success') ||
+            status.contains('approved') ||
+            status.contains('completed') ||
+            status.contains('duplicate') ||
+            status.contains('dublicate')) &&
+        !status.contains('declined') &&
+        !status.contains('failed') &&
+        !status.contains('error') &&
+        !status.contains('cancelled') &&
+        !status.contains('rejected');
 
-    if (ok) {
+    // Also check decrypted status if available
+    final isDecryptedSuccess = decryptedStatus != null &&
+        (decryptedStatus.contains('success') ||
+            decryptedStatus.contains('approved') ||
+            decryptedStatus.contains('completed')) &&
+        !decryptedStatus.contains('declined') &&
+        !decryptedStatus.contains('failed') &&
+        !decryptedStatus.contains('error');
+
+    // Use decrypted status if available, otherwise use main status
+    final finalIsSuccess = decryptedStatus != null ? isDecryptedSuccess : isSuccess;
+
+    print('💰 Payment Status Check:');
+    print('   Status: $status');
+    print('   Decrypted Status: $decryptedStatus');
+    print('   Is Success: $finalIsSuccess');
+
+    if (finalIsSuccess) {
       // Navigate to success page for API payments
+      print('✅ Payment successful - navigating to success page');
       _navigateToApiSuccessPage(orderNo, resp, dec, amount);
       return {
         'success': true,
@@ -989,9 +1059,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       };
     } else {
       // Navigate to failure page for API payments
-      final msg = (resp['statusMessage'] ?? 'Unknown error').toString();
+      final msg = statusMessage.isNotEmpty
+          ? statusMessage
+          : (status.isNotEmpty ? 'Payment $status' : 'Payment failed');
+      print('❌ Payment failed - navigating to failure page');
+      print('   Error message: $msg');
+      // Navigate to failure page - don't throw exception, just return failure
+      // The navigation will handle showing the failure UI
       _navigateToApiFailurePage(orderNo, resp, msg, amount);
-      throw 'YagoutPay API: $msg';
+      return {
+        'success': false,
+        'orderId': orderNo,
+        'error': msg,
+      };
     }
   }
 

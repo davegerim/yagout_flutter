@@ -36,7 +36,10 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _animationController.forward();
+    // Defer initialization until after the build phase completes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
     _initializeApp();
+    });
   }
 
   Future<void> _initializeApp() async {

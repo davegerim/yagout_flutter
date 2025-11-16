@@ -53,6 +53,13 @@ class YagoutPayConfig {
   static const String apiProductionSchemeId = 'YOUR_PRODUCTION_SCHEME_ID';
   static const String apiProductionWalletType = 'YOUR_PRODUCTION_WALLET_TYPE';
 
+  // Backend proxy URL (NestJS backend to avoid CORS)
+  static const String backendUrl = 'http://localhost:3001';
+  static const String backendPaymentEndpoint = '$backendUrl/api/payment/yagoutpay';
+  
+  // Use backend proxy on web to avoid CORS, direct API on mobile
+  static bool get useBackendProxy => true; // Set to false to use direct API
+
   // Default values for required fields
   static const String defaultCountry = 'ETH';
   static const String defaultCurrency = 'ETB';

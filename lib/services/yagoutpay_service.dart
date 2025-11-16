@@ -154,16 +154,23 @@ class YagoutPayService {
       'merchantRequest': encrypted,
     });
 
+    // Determine which endpoint to use
+    final useBackend = YagoutPayConfig.useBackendProxy;
+    final targetUrl = useBackend 
+        ? YagoutPayConfig.backendPaymentEndpoint 
+        : YagoutPayConfig.apiUrl;
+
     print('=== API Request Debug ===');
-    print('API URL: ${YagoutPayConfig.apiUrl}');
+    print('Using: ${useBackend ? "NestJS Backend Proxy" : "Direct YagoutPay API"}');
+    print('Target URL: $targetUrl');
     print('Merchant ID: $meId');
     print('Request body length: ${body.length}');
     print('Encrypted data length: ${encrypted.length}');
     print('========================');
 
-    // Use the working format (no auth headers)
+    // Call backend proxy (NestJS) or direct YagoutPay API
     var resp = await http.post(
-      Uri.parse(YagoutPayConfig.apiUrl),
+      Uri.parse(targetUrl),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -174,15 +181,44 @@ class YagoutPayService {
     print('=== API Response Debug ===');
     print('HTTP Status: ${resp.statusCode}');
     print('Response headers: ${resp.headers}');
-    print('Response body: ${resp.body}');
+    print('Response body length: ${resp.body.length}');
+    print('Response preview: ${resp.body.length > 200 ? resp.body.substring(0, 200) : resp.body}');
     print('=========================');
 
-    if (resp.statusCode != 200) {
+    // Accept both 200 (OK) and 201 (Created) as success
+    if (resp.statusCode != 200 && resp.statusCode != 201) {
       throw Exception(
           'YagoutPay API error: HTTP ${resp.statusCode} - ${resp.body}');
     }
 
-    final Map<String, dynamic> respJson = json.decode(resp.body);
+    // If using backend proxy, extract the nested response
+    Map<String, dynamic> respJson;
+    if (useBackend) {
+      final backendResponse = json.decode(resp.body) as Map<String, dynamic>;
+      print('📦 Backend response structure:');
+      print('   success: ${backendResponse['success']}');
+      print('   status: ${backendResponse['status']}');
+      print('   has data: ${backendResponse['data'] != null}');
+      
+      if (backendResponse['success'] == true && backendResponse['data'] != null) {
+        // Backend returned YagoutPay response in 'data' field
+        respJson = backendResponse['data'] as Map<String, dynamic>;
+        print('✅ Backend proxy successful, extracted YagoutPay response');
+        print('   YagoutPay status: ${respJson['status']}');
+        print('   YagoutPay message: ${respJson['statusMessage']}');
+      } else if (backendResponse['success'] == false) {
+        // Backend returned an error
+        final errorMsg = backendResponse['error'] ?? 'Unknown error';
+        print('❌ Backend returned error: $errorMsg');
+        throw Exception('Backend error: $errorMsg');
+      } else {
+        // Unexpected backend response format
+        throw Exception('Backend error: Unexpected response format - ${backendResponse}');
+      }
+    } else {
+      // Direct API response
+      respJson = json.decode(resp.body) as Map<String, dynamic>;
+    }
 
     final status = (respJson['status'] ?? '').toString();
     final statusMessage = (respJson['statusMessage'] ?? '').toString();
