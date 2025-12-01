@@ -63,14 +63,6 @@ A complete e-commerce shoe selling mobile app built with Flutter, featuring Yago
 
 The app is configured to use YagoutPay UAT environment for testing. Configuration is located in `lib/config/yagoutpay_config.dart`:
 
-```dart
-// Current UAT Configuration
-static const String apiTestMerchantId = '202508080001';
-static const String apiTestKey = 'IG3CNW5uNrUO2mU2htUOWb9rgXCF7XMAXmL63d7wNZo=';
-static const String aggregatorId = 'yagout';
-static const String apiUatUrl = 'https://uatcheckout.yagoutpay.com/ms-transaction-core-1-0/apiRedirection/apiIntegration';
-```
-
 ### Payment Flow
 
 1. **Order Creation**: App generates unique order ID in format `OR-DOIT-XXXX`
@@ -93,13 +85,6 @@ static const String apiUatUrl = 'https://uatcheckout.yagoutpay.com/ms-transactio
 ### 2. Flutter Version Compatibility
 - **Issue**: `CardTheme` compatibility error with newer Flutter versions
 - **Solution**: Updated `CardTheme` to `CardThemeData` in `lib/utils/app_theme.dart`
-
-### 3. YagoutPay Configuration Fix
-- **Issue**: "Invalid token" error from YagoutPay API
-- **Root Cause**: Incorrect merchant ID and encryption key
-- **Solution**: Updated configuration to match backend requirements:
-  - Merchant ID: `202505090001` → `202508080001`
-  - Encryption Key: Updated to match backend configuration
 
 ## 📁 Project Structure
 
@@ -198,33 +183,9 @@ flutter build ios --release
 
 ## 📝 Environment Configuration
 
-### UAT Environment (Current)
-- **Merchant ID**: `202508080001`
-- **API URL**: `https://uatcheckout.yagoutpay.com/ms-transaction-core-1-0/apiRedirection/apiIntegration`
-- **Encryption Key**: `IG3CNW5uNrUO2mU2htUOWb9rgXCF7XMAXmL63d7wNZo=`
-
 ### Production Environment (Future)
 - Update `useUat = false` in `yagoutpay_config.dart`
 - Replace production credentials when provided by YagoutPay
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **"Invalid token" Error**
-   - Ensure merchant ID is correct: `202508080001`
-   - Verify encryption key matches backend configuration
-
-2. **Build Errors**
-   - Run `flutter clean` then `flutter pub get`
-   - Ensure all dependencies are properly installed
-
-3. **Payment Integration Issues**
-   - Check network connectivity
-   - Verify UAT environment is accessible
-   - Ensure order ID format is `OR-DOIT-XXXX`
-
-## 📞 Support +251972315453,+251 98 539 2862
 
 For issues related to:
 - **Flutter App**: Check this README and code comments
